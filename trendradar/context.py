@@ -287,6 +287,7 @@ class AppContext:
         update_info: Optional[Dict] = None,
         rss_items: Optional[List[Dict]] = None,
         rss_new_items: Optional[List[Dict]] = None,
+        ai_analysis: Optional[Any] = None,
     ) -> str:
         """生成HTML报告"""
         return generate_html_report(
@@ -302,7 +303,7 @@ class AppContext:
             output_dir="output",
             date_folder=self.format_date(),
             time_filename=self.format_time(),
-            render_html_func=lambda *args, **kwargs: self.render_html(*args, rss_items=rss_items, rss_new_items=rss_new_items, **kwargs),
+            render_html_func=lambda *args, **kwargs: self.render_html(*args, rss_items=rss_items, rss_new_items=rss_new_items, ai_analysis=ai_analysis, **kwargs),
             matches_word_groups_func=self.matches_word_groups,
             load_frequency_words_func=self.load_frequency_words,
             enable_index_copy=True,
@@ -317,6 +318,7 @@ class AppContext:
         update_info: Optional[Dict] = None,
         rss_items: Optional[List[Dict]] = None,
         rss_new_items: Optional[List[Dict]] = None,
+        ai_analysis: Optional[Any] = None,
     ) -> str:
         """渲染HTML内容"""
         return render_html_content(
@@ -330,6 +332,7 @@ class AppContext:
             rss_items=rss_items,
             rss_new_items=rss_new_items,
             display_mode=self.display_mode,
+            ai_analysis=ai_analysis,
         )
 
     # === 通知内容渲染 ===

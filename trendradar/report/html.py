@@ -6,7 +6,7 @@ HTML 报告渲染模块
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List, Optional, Callable, Any
 
 from trendradar.report.helpers import html_escape
 from trendradar.utils.time import convert_time_for_display
@@ -25,6 +25,7 @@ def render_html_content(
     rss_new_items: Optional[List[Dict]] = None,
     display_mode: str = "keyword",
     standalone_data: Optional[Dict] = None,
+    ai_analysis: Optional[Any] = None,
 ) -> str:
     """渲染HTML内容
 
@@ -649,6 +650,96 @@ def render_html_content(
                 font-size: 13px;
                 font-weight: 500;
             }
+
+            /* AI 分析样式 */
+            .ai-analysis-section {
+                margin-top: 32px;
+                padding-top: 24px;
+                border-top: 2px solid #e5e7eb;
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                border-radius: 12px;
+                padding: 24px;
+                margin-bottom: 24px;
+            }
+
+            .ai-analysis-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .ai-analysis-icon {
+                width: 24px;
+                height: 24px;
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 12px;
+                color: white;
+                font-weight: bold;
+                font-size: 14px;
+            }
+
+            .ai-analysis-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0;
+            }
+
+            .ai-analysis-content {
+                background: white;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e2e8f0;
+            }
+
+            .ai-analysis-item {
+                margin-bottom: 20px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid #f1f5f9;
+            }
+
+            .ai-analysis-item:last-child {
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom: none;
+            }
+
+            .ai-analysis-label {
+                font-size: 14px;
+                font-weight: 600;
+                color: #4f46e5;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+            }
+
+            .ai-analysis-label::before {
+                content: "▶";
+                margin-right: 6px;
+                font-size: 12px;
+            }
+
+            .ai-analysis-text {
+                color: #374151;
+                line-height: 1.6;
+                font-size: 14px;
+                white-space: pre-wrap;
+            }
+
+            .ai-analysis-stats {
+                margin-top: 16px;
+                padding: 12px;
+                background: #f8fafc;
+                border-radius: 6px;
+                font-size: 12px;
+                color: #64748b;
+                text-align: center;
+            }
         </style>
     </head>
     <body>
@@ -1240,6 +1331,48 @@ def render_html_content(
         # 默认：统计在前，新增在后
         # 顺序：热榜统计 → RSS统计 → 热榜新增 → RSS新增 → 独立展示区
         html += stats_html + rss_stats_html + new_titles_html + rss_new_html + standalone_html
+
+    # AI 分析内容
+    if ai_analysis and ai_analysis.success:
+        html += """
+                <div class="ai-analysis-section">
+                    <div class="ai-analysis-header">
+                        <div class="ai-analysis-icon">AI</div>
+                        <h3 class="ai-analysis-title">智能分析</h3>
+                    </div>
+                    <div class="ai-analysis-content">"""
+
+        # 显示各个分析项目
+        analysis_items = [
+            ("热点趋势概述", ai_analysis.summary),
+            ("关键词热度分析", ai_analysis.keyword_analysis),
+            ("情感倾向分析", ai_analysis.sentiment),
+            ("跨平台关联", ai_analysis.cross_platform),
+            ("潜在影响评估", ai_analysis.impact),
+            ("值得关注的信号", ai_analysis.signals),
+            ("总结与建议", ai_analysis.conclusion),
+        ]
+
+        for label, content in analysis_items:
+            if content and content.strip():
+                escaped_content = html_escape(content.strip())
+                html += f"""
+                        <div class="ai-analysis-item">
+                            <div class="ai-analysis-label">{html_escape(label)}</div>
+                            <div class="ai-analysis-text">{escaped_content}</div>
+                        </div>"""
+
+        # 添加统计信息
+        if hasattr(ai_analysis, 'analyzed_news') and hasattr(ai_analysis, 'total_news'):
+            html += f"""
+                        <div class="ai-analysis-stats">
+                            分析了 {ai_analysis.analyzed_news}/{ai_analysis.total_news} 条新闻
+                            (热榜: {getattr(ai_analysis, 'hotlist_count', 0)} 条, RSS: {getattr(ai_analysis, 'rss_count', 0)} 条)
+                        </div>"""
+
+        html += """
+                    </div>
+                </div>"""
 
     html += """
             </div>

@@ -9,7 +9,7 @@ TrendRadar 主程序
 import os
 import webbrowser
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 
 import requests
 
@@ -509,6 +509,7 @@ class NewsAnalyzer:
         quiet: bool = False,
         rss_items: Optional[List[Dict]] = None,
         rss_new_items: Optional[List[Dict]] = None,
+        ai_analysis: Optional[Any] = None,
     ) -> Tuple[List[Dict], Optional[str]]:
         """统一的分析流水线：数据处理 → 统计计算 → HTML生成"""
 
@@ -547,6 +548,7 @@ class NewsAnalyzer:
                 update_info=self.update_info if self.ctx.config["SHOW_VERSION_UPDATE"] else None,
                 rss_items=rss_items,
                 rss_new_items=rss_new_items,
+                ai_analysis=ai_analysis,
             )
 
         return stats, html_file
@@ -707,6 +709,26 @@ class NewsAnalyzer:
             analysis_data
         )
 
+        # AI 分析（如果启用）
+        ai_result = None
+        ai_config = self.ctx.config.get("AI_ANALYSIS", {})
+        if ai_config.get("ENABLED", False):
+            # 先进行统计计算以获取stats用于AI分析
+            temp_stats, _ = self.ctx.count_frequency(
+                all_results,
+                word_groups,
+                filter_words,
+                id_to_name,
+                title_info,
+                new_titles,
+                mode=mode_strategy["summary_mode"],
+                global_filters=global_filters,
+                quiet=True,
+            )
+            ai_result = self._run_ai_analysis(
+                temp_stats, rss_items, mode_strategy["summary_mode"], summary_type, id_to_name
+            )
+
         # 运行分析流水线
         stats, html_file = self._run_analysis_pipeline(
             all_results,
@@ -720,6 +742,7 @@ class NewsAnalyzer:
             global_filters=global_filters,
             rss_items=rss_items,
             rss_new_items=rss_new_items,
+            ai_analysis=ai_result,
         )
 
         if html_file:
@@ -765,6 +788,26 @@ class NewsAnalyzer:
             analysis_data
         )
 
+        # AI 分析（如果启用）
+        ai_result = None
+        ai_config = self.ctx.config.get("AI_ANALYSIS", {})
+        if ai_config.get("ENABLED", False):
+            # 先进行统计计算以获取stats用于AI分析
+            temp_stats, _ = self.ctx.count_frequency(
+                all_results,
+                word_groups,
+                filter_words,
+                id_to_name,
+                title_info,
+                new_titles,
+                mode=mode,
+                global_filters=global_filters,
+                quiet=True,
+            )
+            ai_result = self._run_ai_analysis(
+                temp_stats, rss_items, mode, summary_type, id_to_name
+            )
+
         # 运行分析流水线（静默模式，避免重复输出日志）
         _, html_file = self._run_analysis_pipeline(
             all_results,
@@ -779,6 +822,7 @@ class NewsAnalyzer:
             quiet=True,
             rss_items=rss_items,
             rss_new_items=rss_new_items,
+            ai_analysis=ai_result,
         )
 
         if html_file:
