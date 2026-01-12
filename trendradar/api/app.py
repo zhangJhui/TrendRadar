@@ -14,6 +14,10 @@ def create_app() -> FastAPI:
         title="TrendRadar API",
         description="TrendRadar 零侵入式 API 接口层",
         version="1.0.0",
+        # 避免占用主站 /docs、/openapi.json：统一挂到 /news-api/* 下
+        docs_url="/news-api/docs",
+        redoc_url="/news-api/redoc",
+        openapi_url="/news-api/openapi.json",
     )
 
     app.include_router(news_router, prefix="/news-api", tags=["news"])
