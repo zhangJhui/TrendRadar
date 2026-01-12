@@ -68,4 +68,7 @@ ENV PYTHONUNBUFFERED=1 \
     CONFIG_PATH=/app/config/config.yaml \
     FREQUENCY_WORDS_PATH=/app/config/frequency_words.txt
 
+# TrendRadar API 端口（RUN_MODE=api）
+EXPOSE 8000
+
 ENTRYPOINT ["/entrypoint.sh"]

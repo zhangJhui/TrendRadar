@@ -15,6 +15,12 @@ case "${RUN_MODE:-cron}" in
     echo "🔄 单次执行"
     exec /usr/local/bin/python -m trendradar
     ;;
+"api")
+    echo "🌐 启动 TrendRadar API..."
+    # API 端口（容器内）
+    API_PORT="${API_PORT:-8000}"
+    exec /usr/local/bin/python -m trendradar.api --host 0.0.0.0 --port "${API_PORT}"
+    ;;
 "cron")
     # 生成 crontab
     echo "${CRON_SCHEDULE:-*/30 * * * *} cd /app && /usr/local/bin/python -m trendradar" > /tmp/crontab
