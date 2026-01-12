@@ -2520,6 +2520,7 @@ TrendRadar 提供两个独立的 Docker 镜像，可根据需求选择部署：
    宝塔的 Compose“文件/上传”方式有时会导致相对路径（如 `../config`）失效。建议使用仓库内的宝塔专用编排文件：
 
    - `docker/docker-compose-bt.yml`
+   - `docker/Dockerfile.api`（API 专用，不依赖 supercronic/GitHub 下载，适合网络受限环境）
 
    使用步骤：
    1) 上传/拉取你的项目源码到服务器，例如：`/www/wwwroot/TrendRadar`

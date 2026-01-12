@@ -1,0 +1,21 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# 仅用于 API：不需要 supercronic / cron，因此不从 GitHub 下载任何二进制
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY trendradar/ ./trendradar/
+
+RUN mkdir -p /app/config /app/output
+
+ENV PYTHONUNBUFFERED=1 \
+    CONFIG_PATH=/app/config/config.yaml \
+    FREQUENCY_WORDS_PATH=/app/config/frequency_words.txt \
+    API_PORT=8000
+
+EXPOSE 8000
+
+CMD ["python", "-m", "trendradar.api", "--host", "0.0.0.0", "--port", "8000"]
+

@@ -67,7 +67,7 @@ services:
   trendradar-api:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.api
     container_name: trendradar-api
     restart: unless-stopped
 

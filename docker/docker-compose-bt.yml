@@ -4,7 +4,7 @@ services:
     build:
       # 关键：使用绝对路径的项目根目录作为 build context（由 .env 提供）
       context: ${PROJECT_DIR:-/www/wwwroot/TrendRadar}
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.api
     container_name: trendradar-api
     restart: unless-stopped
 
