@@ -11,6 +11,25 @@ import webbrowser
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 
+# 自动加载 .env 文件
+try:
+    from dotenv import load_dotenv
+    # 查找 .env 文件（从当前目录开始向上查找）
+    env_path = Path.cwd() / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+        print(f"✅ 已加载环境变量文件: {env_path}")
+    else:
+        # 尝试在项目根目录查找
+        project_root = Path(__file__).parent.parent
+        env_path = project_root / ".env"
+        if env_path.exists():
+            load_dotenv(env_path)
+            print(f"✅ 已加载环境变量文件: {env_path}")
+except ImportError:
+    print("⚠️  python-dotenv 未安装，无法自动加载 .env 文件")
+    print("   如需使用 .env 文件，请运行: pip install python-dotenv")
+
 import requests
 
 from trendradar.context import AppContext
@@ -247,6 +266,23 @@ class NewsAnalyzer:
         ai_config = self.ctx.config.get("AI_ANALYSIS", {})
         if not ai_config.get("ENABLED", False):
             return None
+
+        # 验证AI配置
+        api_key = ai_config.get("API_KEY") or os.environ.get("AI_API_KEY", "")
+        provider = ai_config.get("PROVIDER", "deepseek")
+
+        if not api_key:
+            print("[AI] ❌ AI分析已启用但未配置API Key")
+            print("     请在 .env 文件中设置 AI_API_KEY=your_api_key")
+            print("     或在 config/config.yaml 中配置 ai_analysis.api_key")
+            return None
+
+        if provider == "custom":
+            base_url = ai_config.get("BASE_URL") or os.environ.get("AI_BASE_URL", "")
+            if not base_url:
+                print("[AI] ❌ 使用自定义提供商但未配置 BASE_URL")
+                print("     请在 .env 文件中设置 AI_BASE_URL=your_api_endpoint")
+                return None
 
         print("[AI] 正在进行 AI 分析...")
         try:
