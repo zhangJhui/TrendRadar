@@ -11,6 +11,7 @@ def read_titles_from_storage(
     storage_manager,
     date: Optional[str],
     platform_ids: Optional[List[str]] = None,
+    mode: str = "daily",
 ) -> Tuple[Dict, Dict, Dict, Optional[NewsData]]:
     """
     读取指定日期热榜（SQLite）并转换成 core.count_word_frequency 所需结构：
@@ -18,7 +19,10 @@ def read_titles_from_storage(
     - id_to_name: {source_id: source_name}
     - title_info: {source_id: {title: {"first_time","last_time","count","ranks","url","mobileUrl"}}}
     """
-    news_data: Optional[NewsData] = storage_manager.get_today_all_data(date)
+    if mode == "current" or mode == "incremental":
+        news_data = storage_manager.get_latest_crawl_data(date)
+    else:
+        news_data = storage_manager.get_today_all_data(date)
     if not news_data or not news_data.items:
         return {}, {}, {}, news_data
 

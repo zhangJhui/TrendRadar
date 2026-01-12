@@ -16,6 +16,7 @@ from trendradar.api.models.response import (
     RssFeedOut,
 )
 from trendradar.api.services.context_provider import get_ctx, get_storage_manager
+from trendradar.api.services.refresh_service import RefreshService
 from trendradar.api.utils.ids import generate_news_id, generate_rss_id
 from trendradar.api.utils.rss import detect_new_rss_urls, rss_items_dict_to_list
 from trendradar.api.utils.storage_readers import detect_latest_new_titles, read_rss_from_storage, read_titles_from_storage
@@ -52,20 +53,35 @@ class NewsService:
         ctx = get_ctx()
         storage = get_storage_manager()
 
+        # 每次调用都先抓取最新数据写入 output（与 CLI 行为一致）
+        RefreshService.refresh_news(ctx, storage, platform_ids=req.platforms)
+        if req.include_rss:
+            RefreshService.refresh_rss(ctx, storage)
+
         date = resolve_date(req.date, ctx.timezone)
 
         results, id_to_name, title_info, news_data = read_titles_from_storage(
-            storage, date, req.platforms
+            storage, date, req.platforms, mode=req.mode
         )
 
         # 新增标题（用于 is_new）
-        new_titles = detect_latest_new_titles(storage, date, req.platforms) if req.mode in ("current", "daily", "incremental") else {}
+        new_titles = detect_latest_new_titles(storage, date, req.platforms)
 
         # 平台维度组织
         platforms_out: Dict[str, PlatformNewsOut] = {}
         total_news = 0
         matched_news = 0
         new_news = 0
+
+        # incremental：只返回“新增”新闻
+        if req.mode == "incremental" and new_titles:
+            filtered_results = {}
+            for pid, titles_map in results.items():
+                nt = new_titles.get(pid, {})
+                if not nt:
+                    continue
+                filtered_results[pid] = {t: titles_map[t] for t in titles_map.keys() if t in nt}
+            results = filtered_results
 
         for platform_id, titles_map in results.items():
             platform_name = id_to_name.get(platform_id, platform_id)
@@ -212,10 +228,16 @@ class NewsService:
     def get_news_html(req: NewsRequest) -> HTMLResponse:
         ctx = get_ctx()
         storage = get_storage_manager()
+
+        # 每次调用都先抓取最新数据写入 output（与 CLI 行为一致）
+        RefreshService.refresh_news(ctx, storage, platform_ids=req.platforms)
+        if req.include_rss:
+            RefreshService.refresh_rss(ctx, storage)
+
         date = resolve_date(req.date, ctx.timezone)
 
         results, id_to_name, title_info, news_data = read_titles_from_storage(
-            storage, date, req.platforms
+            storage, date, req.platforms, mode=req.mode
         )
         new_titles = detect_latest_new_titles(storage, date, req.platforms)
 

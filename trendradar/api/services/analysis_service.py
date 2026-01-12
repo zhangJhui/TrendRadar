@@ -60,7 +60,7 @@ class AnalysisService:
         date = resolve_date(q.date, ctx.timezone)
 
         results, id_to_name, title_info, _news_data = read_titles_from_storage(
-            storage, date, q.platforms
+            storage, date, q.platforms, mode=q.mode
         )
 
         # 选取要分析的新闻子集
