@@ -2442,8 +2442,11 @@ TrendRadar 提供两个独立的 Docker 镜像，可根据需求选择部署：
    wget https://raw.githubusercontent.com/sansan0/TrendRadar/master/config/ai_analysis_prompt.txt -P config/
 
    # 下载 docker compose 配置
-   wget https://raw.githubusercontent.com/sansan0/TrendRadar/master/docker/.env  -P docker/
+   wget https://raw.githubusercontent.com/sansan0/TrendRadar/master/docker/env.example  -P docker/
    wget https://raw.githubusercontent.com/sansan0/TrendRadar/master/docker/docker-compose.yml  -P docker/
+
+   # 生成本地 docker/.env（不要提交真实密钥）
+   cp docker/env.example docker/.env
    ```
 
    > 💡 **说明**：Docker 部署需要的关键目录结构如下：
@@ -2454,7 +2457,8 @@ TrendRadar 提供两个独立的 Docker 镜像，可根据需求选择部署：
 │   ├── frequency_words.txt
 │   └── ai_analysis_prompt.txt    # AI 分析提示词（v5.0.0 新增，可选）
 └── docker/
-    ├── .env
+    ├── env.example
+    ├── .env                      # 由 env.example 复制得到（本地填写密钥，不建议提交）
     └── docker-compose.yml
 ```
 
@@ -2464,7 +2468,8 @@ TrendRadar 提供两个独立的 Docker 镜像，可根据需求选择部署：
    - `config/config.yaml` - **功能配置**（报告模式、推送设置、存储格式、推送窗口、AI 分析等）
    - `config/frequency_words.txt` - **关键词配置**（设置你关心的热点词汇）
    - `config/ai_analysis_prompt.txt` - **AI 提示词配置**（自定义 AI 分析角色和输出格式，v5.0.0 新增）
-   - `docker/.env` - **敏感信息 + Docker 特有配置**（webhook URLs、API Key、S3 密钥、定时任务）
+   - `docker/env.example` - **Docker 环境变量模板**（可提交到仓库）
+   - `docker/.env` - **敏感信息 + Docker 特有配置**（webhook URLs、API Key、S3 密钥、定时任务；由 env.example 复制得到）
 
    > 💡 **配置修改生效**：修改 `config.yaml` 后，执行 `docker compose up -d` 重启容器即可生效
 
@@ -2495,6 +2500,20 @@ TrendRadar 提供两个独立的 Docker 镜像，可根据需求选择部署：
 
 
 3. **启动服务**:
+
+   **选项 API：仅启动 API 常驻服务（新增）**
+
+   - 构建版（本仓库代码）：在项目根目录执行
+   ```bash
+   docker compose -f docker/docker-compose-build.yml up -d trendradar-api
+   ```
+   - 镜像版（已发布镜像）：在项目根目录执行
+   ```bash
+   docker compose -f docker/docker-compose.yml up -d trendradar-api
+   ```
+   - 访问地址：
+     - `http://127.0.0.1:8000/docs`
+     - `http://127.0.0.1:8000/news-api/news`
 
    **选项 A：启动所有服务（推送 + AI 分析）**
    ```bash
