@@ -2515,6 +2515,22 @@ TrendRadar 提供两个独立的 Docker 镜像，可根据需求选择部署：
      - `http://127.0.0.1:8000/docs`
      - `http://127.0.0.1:8000/news-api/news`
 
+   **宝塔面板（Docker 管理器）部署建议（推荐）**
+
+   宝塔的 Compose“文件/上传”方式有时会导致相对路径（如 `../config`）失效。建议使用仓库内的宝塔专用编排文件：
+
+   - `docker/docker-compose-bt.yml`
+
+   使用步骤：
+   1) 上传/拉取你的项目源码到服务器，例如：`/www/wwwroot/TrendRadar`
+   2) 复制并编辑 env：
+      - `cp docker/env.example docker/.env`
+      - 在 `docker/.env` 里填写：`PROJECT_DIR=/www/wwwroot/TrendRadar`
+   3) 宝塔 → Docker → 容器编排 → 添加容器编排：
+      - 选择 compose 文件：`/www/wwwroot/TrendRadar/docker/docker-compose-bt.yml`
+      - 选择 env 文件：`/www/wwwroot/TrendRadar/docker/.env`
+      - 创建并启动后，容器列表应出现 `trendradar-api`
+
    **选项 A：启动所有服务（推送 + AI 分析）**
    ```bash
    # 拉取最新镜像

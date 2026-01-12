@@ -1,0 +1,29 @@
+services:
+  # 宝塔面板推荐：只启动 API 常驻服务
+  trendradar-api:
+    build:
+      # 关键：使用绝对路径的项目根目录作为 build context（由 .env 提供）
+      context: ${PROJECT_DIR:-/www/wwwroot/TrendRadar}
+      dockerfile: docker/Dockerfile
+    container_name: trendradar-api
+    restart: unless-stopped
+
+    ports:
+      # 默认仅本机访问；如需公网访问，把 127.0.0.1: 去掉
+      - "127.0.0.1:${API_PORT:-8000}:${API_PORT:-8000}"
+
+    volumes:
+      # 关键：用绝对路径挂载，避免宝塔的工作目录导致 ../config 失效
+      - ${PROJECT_DIR:-/www/wwwroot/TrendRadar}/config:/app/config:ro
+      - ${PROJECT_DIR:-/www/wwwroot/TrendRadar}/output:/app/output
+
+    environment:
+      - TZ=Asia/Shanghai
+      - RUN_MODE=api
+      - API_PORT=${API_PORT:-8000}
+      # AI 分析配置（可选）
+      - AI_API_KEY=${AI_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-}
+      - AI_MODEL=${AI_MODEL:-}
+      - AI_BASE_URL=${AI_BASE_URL:-}
+
